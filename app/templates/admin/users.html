@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Admin · Utilizadores{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h1 class="h4 fw-bold mb-0">Gestão de Utilizadores</h1>
+    <span class="badge" style="background:var(--vm-surface-2);color:var(--vm-text-muted);border:1px solid var(--vm-border)">{{ all_users|length }} utilizadores</span>
+</div>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead style="background:var(--vm-surface-2)">
+                <tr>
+                    <th class="px-3 py-2 small text-muted fw-600">NOME</th>
+                    <th class="py-2 small text-muted fw-600">EMAIL</th>
+                    <th class="py-2 small text-muted fw-600">ROLE</th>
+                    <th class="py-2 small text-muted fw-600">DESDE</th>
+                    <th class="py-2 small text-muted fw-600">ESTADO</th>
+                    <th class="py-2 small text-muted fw-600"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in all_users %}
+                <tr>
+                    <td class="px-3 py-2 fw-500">{{ u.nome }}</td>
+                    <td class="py-2 small text-muted">{{ u.email }}</td>
+                    <td class="py-2">
+                        {% if u.role == 'admin' %}<span class="badge" style="background:rgba(79,152,163,.15);color:var(--vm-accent);border:1px solid rgba(79,152,163,.3)">admin</span>
+                        {% else %}<span class="badge" style="background:var(--vm-surface-2);color:var(--vm-text-muted);border:1px solid var(--vm-border)">user</span>{% endif %}
+                    </td>
+                    <td class="py-2 small text-muted">{{ u.criado_em.strftime('%d/%m/%Y') if u.criado_em else '—' }}</td>
+                    <td class="py-2">
+                        {% if u.ativo %}<span class="badge badge-ok">Ativo</span>
+                        {% else %}<span class="badge badge-danger">Inativo</span>{% endif %}
+                    </td>
+                    <td class="py-2">
+                        {% if u.id != user.id %}
+                        <form method="POST" action="{{ url_for('admin.toggle_user', uid=u.id) }}">
+                            <button class="btn btn-sm py-0 px-2" style="border:1px solid var(--vm-border);color:{% if u.ativo %}var(--vm-danger){% else %}var(--vm-ok){% endif %};font-size:.78rem">
+                                {% if u.ativo %}Desativar{% else %}Ativar{% endif %}
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

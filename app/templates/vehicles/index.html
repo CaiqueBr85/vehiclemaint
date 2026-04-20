@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Veículos · VehicleMaint{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h1 class="h4 fw-bold mb-0">Veículos</h1>
+    <a href="{{ url_for('vehicles.create') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Novo Veículo</a>
+</div>
+{% if vehicles %}
+<div class="row g-3">
+    {% for v in vehicles %}
+    {% set st = v.status_summary %}
+    <div class="col-12 col-md-6 col-lg-4">
+        <div class="card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <div class="fw-700">{{ v.marca }} {{ v.modelo }}</div>
+                    <div class="small text-muted">{{ v.matricula or '—' }} {% if v.ano %}· {{ v.ano }}{% endif %} {% if v.combustivel %}· {{ v.combustivel }}{% endif %}</div>
+                </div>
+                {% if st == 'Vencida' %}<span class="badge badge-danger">{{ st }}</span>
+                {% elif st == 'Quase a Vencer' %}<span class="badge badge-warn">{{ st }}</span>
+                {% else %}<span class="badge badge-ok">{{ st }}</span>{% endif %}
+            </div>
+            <div class="small text-muted mb-3"><i class="bi bi-speedometer2 me-1"></i>{{ v.current_km|int }} km</div>
+            <div class="d-flex gap-2 mt-auto">
+                <a href="{{ url_for('vehicles.detail', vehicle_id=v.id) }}" class="btn btn-sm flex-fill" style="border:1px solid var(--vm-border);color:var(--vm-text)">Detalhe</a>
+                <a href="{{ url_for('vehicles.edit', vehicle_id=v.id) }}" class="btn btn-sm" style="border:1px solid var(--vm-border);color:var(--vm-text)"><i class="bi bi-pencil"></i></a>
+                <form method="POST" action="{{ url_for('vehicles.delete', vehicle_id=v.id) }}" onsubmit="return confirm('Remover veículo?')">
+                    <button class="btn btn-sm" style="border:1px solid var(--vm-border);color:var(--vm-danger)"><i class="bi bi-trash"></i></button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card p-5 text-center">
+    <i class="bi bi-car-front" style="font-size:2.5rem;color:var(--vm-text-muted)"></i>
+    <p class="text-muted mt-3 mb-3">Ainda não tens veículos registados.</p>
+    <a href="{{ url_for('vehicles.create') }}" class="btn btn-primary mx-auto" style="width:fit-content"><i class="bi bi-plus-lg me-1"></i>Adicionar Veículo</a>
+</div>
+{% endif %}
+{% endblock %}

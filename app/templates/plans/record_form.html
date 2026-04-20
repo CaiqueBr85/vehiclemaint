@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Registar Manutenção · VehicleMaint{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-7 col-lg-5">
+        <div class="d-flex align-items-center gap-2 mb-4">
+            <a href="{{ url_for('vehicles.detail', vehicle_id=vehicle.id) }}" class="btn btn-sm" style="border:1px solid var(--vm-border);color:var(--vm-text)"><i class="bi bi-arrow-left"></i></a>
+            <h1 class="h5 fw-bold mb-0">Registar Manutenção</h1>
+        </div>
+        <div class="card p-3 mb-3" style="border-color:rgba(79,152,163,.3)">
+            <div class="small text-muted">Plano</div>
+            <div class="fw-600">{{ plan.nome }}</div>
+            <div class="small text-muted mt-1">{{ vehicle.marca }} {{ vehicle.modelo }} · {{ vehicle.matricula or '—' }}</div>
+            {% set st = plan.status %}
+            {% if st == 'Vencida' %}<span class="badge badge-danger mt-1">Vencida</span>
+            {% elif st == 'Quase a Vencer' %}<span class="badge badge-warn mt-1">Quase a Vencer</span>
+            {% endif %}
+        </div>
+        <div class="card p-4">
+            <form method="POST">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label class="form-label small text-muted">DATA</label>
+                        <input type="date" name="data" class="form-control" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small text-muted">QUILOMETRAGEM</label>
+                        <input type="number" name="km" class="form-control" placeholder="{{ vehicle.current_km }}" required min="0">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small text-muted">CUSTO (€)</label>
+                        <input type="number" name="custo" class="form-control" placeholder="0.00" step="0.01" min="0">
+                    </div>
+                    <div class="col-6"></div>
+                    <div class="col-12">
+                        <label class="form-label small text-muted">NOTAS</label>
+                        <textarea name="notas" class="form-control" rows="3" placeholder="Ex: Motul 7100 4T 10W-40..."></textarea>
+                    </div>
+                    <div class="col-12 mt-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-check2-circle me-1"></i>Guardar Manutenção
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>document.querySelector('input[name="data"]').valueAsDate = new Date();</script>
+{% endblock %}

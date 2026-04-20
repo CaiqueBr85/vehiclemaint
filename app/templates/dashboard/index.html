@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · VehicleMaint{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h4 fw-bold mb-0">Dashboard</h1>
+        <p class="text-muted small mb-0">Olá, {{ user.nome.split()[0] }} 👋</p>
+    </div>
+    <a href="{{ url_for('vehicles.create') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg me-1"></i>Novo Veículo
+    </a>
+</div>
+
+{% if plans_vencidas or plans_quase %}
+<div class="card mb-4" style="border-color:rgba(221,105,116,.4)">
+    <div class="card-body py-3">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-exclamation-triangle-fill" style="color:var(--vm-danger)"></i>
+            <span class="fw-600 small text-uppercase" style="letter-spacing:.05em;color:var(--vm-danger)">Lembretes Ativos</span>
+        </div>
+        {% for v, p in plans_vencidas %}
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <span class="badge badge-danger px-2 py-1" style="border-radius:6px;font-size:.72rem">VENCIDA</span>
+            <span class="small">{{ p.nome }} — {{ v.marca }} {{ v.modelo }}</span>
+            <a href="{{ url_for('plans.add_record', plan_id=p.id) }}" class="btn btn-sm ms-auto py-0 px-2" style="font-size:.78rem;color:var(--vm-accent);border:1px solid var(--vm-border)">Registar</a>
+        </div>
+        {% endfor %}
+        {% for v, p in plans_quase %}
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <span class="badge badge-warn px-2 py-1" style="border-radius:6px;font-size:.72rem">EM BREVE</span>
+            <span class="small">{{ p.nome }} — {{ v.marca }} {{ v.modelo }}</span>
+            <a href="{{ url_for('plans.add_record', plan_id=p.id) }}" class="btn btn-sm ms-auto py-0 px-2" style="font-size:.78rem;color:var(--vm-accent);border:1px solid var(--vm-border)">Registar</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<h2 class="h6 fw-600 text-muted text-uppercase mb-3" style="letter-spacing:.05em">Os meus Veículos</h2>
+
+{% if vehicles %}
+<div class="row g-3">
+    {% for v in vehicles %}
+    {% set st = v.status_summary %}
+    <div class="col-12 col-md-6 col-lg-4">
+        <div class="card h-100 p-3" style="transition:.18s">
+            <div class="d-flex align-items-start justify-content-between mb-2">
+                <div>
+                    <div class="fw-700">{{ v.marca }} {{ v.modelo }}</div>
+                    <div class="small text-muted">{{ v.matricula or '—' }} {% if v.ano %}· {{ v.ano }}{% endif %}</div>
+                </div>
+                {% if st == 'Vencida' %}
+                    <span class="badge badge-danger px-2">{{ v.plans|selectattr('ativo')|list|length }} alerta{% if v.plans|selectattr('ativo')|list|length != 1 %}s{% endif %}</span>
+                {% elif st == 'Quase a Vencer' %}
+                    <span class="badge badge-warn px-2">Em breve</span>
+                {% else %}
+                    <span class="badge badge-ok px-2">OK</span>
+                {% endif %}
+            </div>
+            <div class="small text-muted mb-3">
+                <i class="bi bi-speedometer2 me-1"></i>{{ v.current_km|int }} km
+                {% if v.combustivel %} · {{ v.combustivel }}{% endif %}
+            </div>
+            <a href="{{ url_for('vehicles.detail', vehicle_id=v.id) }}" class="btn btn-sm w-100" style="border:1px solid var(--vm-border);color:var(--vm-text);font-size:.85rem">
+                Ver detalhe <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+    <div class="col-12 col-md-6 col-lg-4">
+        <a href="{{ url_for('vehicles.create') }}" class="card h-100 p-3 d-flex align-items-center justify-content-center text-decoration-none" style="border-style:dashed;min-height:130px">
+            <i class="bi bi-plus-circle" style="font-size:1.5rem;color:var(--vm-text-muted)"></i>
+            <span class="small text-muted mt-2">Novo veículo</span>
+        </a>
+    </div>
+</div>
+{% else %}
+<div class="card p-5 text-center">
+    <i class="bi bi-car-front" style="font-size:2.5rem;color:var(--vm-text-muted)"></i>
+    <h3 class="h6 mt-3 mb-1">Ainda não tens veículos</h3>
+    <p class="text-muted small mb-3">Adiciona o teu primeiro veículo para começar a gerir a manutenção.</p>
+    <a href="{{ url_for('vehicles.create') }}" class="btn btn-primary mx-auto" style="width:fit-content">
+        <i class="bi bi-plus-lg me-1"></i>Adicionar Veículo
+    </a>
+</div>
+{% endif %}
+{% endblock %}

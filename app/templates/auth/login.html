@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Login · VehicleMaint{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-center" style="min-height:80vh">
+    <div class="card p-4" style="width:100%;max-width:420px">
+        <div class="text-center mb-4">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--vm-accent)" stroke-width="2" class="mb-3"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <h1 class="h4 fw-bold mb-1">Entrar na conta</h1>
+            <p class="text-muted small">Acede à tua plataforma de manutenção</p>
+        </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for cat, msg in messages %}<div class="alert alert-{{ cat }} py-2">{{ msg }}</div>{% endfor %}
+        {% endwith %}
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label small text-muted text-uppercase" style="letter-spacing:.06em">EMAIL</label>
+                <input type="email" name="email" class="form-control" placeholder="exemplo@email.com" required>
+            </div>
+            <div class="mb-4">
+                <label class="form-label small text-muted text-uppercase" style="letter-spacing:.06em">PASSWORD</label>
+                <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-500">Entrar</button>
+        </form>
+        <p class="text-center mt-3 small text-muted">Ainda não tens conta? <a href="{{ url_for('auth.register') }}" style="color:var(--vm-accent)">Criar conta</a></p>
+    </div>
+</div>
+{% endblock %}

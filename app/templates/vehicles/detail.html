@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}{{ vehicle.marca }} {{ vehicle.modelo }} · VehicleMaint{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center gap-2 mb-4">
+    <a href="{{ url_for('vehicles.index') }}" class="btn btn-sm" style="border:1px solid var(--vm-border);color:var(--vm-text)"><i class="bi bi-arrow-left"></i></a>
+    <div>
+        <h1 class="h4 fw-bold mb-0">{{ vehicle.marca }} {{ vehicle.modelo }}</h1>
+        <span class="small text-muted">{{ vehicle.matricula or '—' }} {% if vehicle.ano %}· {{ vehicle.ano }}{% endif %} {% if vehicle.combustivel %}· {{ vehicle.combustivel }}{% endif %}</span>
+    </div>
+    <a href="{{ url_for('vehicles.edit', vehicle_id=vehicle.id) }}" class="btn btn-sm ms-auto" style="border:1px solid var(--vm-border);color:var(--vm-text)"><i class="bi bi-pencil me-1"></i>Editar</a>
+</div>
+
+<div class="row g-4">
+    <!-- Odómetro -->
+    <div class="col-12 col-lg-4">
+        <div class="card p-3 mb-3">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-speedometer2" style="color:var(--vm-accent)"></i>
+                <span class="fw-600">Odómetro</span>
+            </div>
+            <div class="display-6 fw-bold mb-1">{{ vehicle.current_km|int }} <span class="fs-6 text-muted fw-normal">km</span></div>
+            <hr style="border-color:var(--vm-border)">
+            <form method="POST" action="{{ url_for('vehicles.add_odometer', vehicle_id=vehicle.id) }}" class="row g-2">
+                <div class="col-7">
+                    <input type="number" name="km" class="form-control form-control-sm" placeholder="Nova leitura km" required min="{{ vehicle.current_km }}">
+                </div>
+                <div class="col-5">
+                    <input type="date" name="data" class="form-control form-control-sm" value="{{ today }}">
+                </div>
+                <div class="col-12">
+                    <button class="btn btn-sm btn-primary w-100">Registar leitura</button>
+                </div>
+            </form>
+        </div>
+        <!-- Histórico odómetro -->
+        {% if vehicle.odometer_logs %}
+        <div class="card p-3">
+            <div class="small fw-600 mb-2 text-muted">Histórico de leituras</div>
+            <div style="max-height:200px;overflow-y:auto">
+                {% for log in vehicle.odometer_logs[:10] %}
+                <div class="d-flex justify-content-between small py-1" style="border-bottom:1px solid var(--vm-border)">
+                    <span>{{ log.data }}</span>
+                    <span class="fw-600">{{ log.km }} km</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Planos de manutenção -->
+    <div class="col-12 col-lg-8">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <span class="fw-600">Planos de Manutenção</span>
+            <a href="{{ url_for('plans.create', vehicle_id=vehicle.id) }}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>Novo Plano</a>
+        </div>
+        {% if vehicle.plans %}
+            {% for p in vehicle.plans if p.ativo %}
+            {% set st = p.status %}
+            <div class="card p-3 mb-2">
+                <div class="d-flex align-items-start justify-content-between">
+                    <div>
+                        <div class="fw-600">{{ p.nome }}</div>
+                        <div class="small text-muted mt-1">
+                            {% if p.intervalo_km %}<span class="me-2"><i class="bi bi-speedometer2 me-1"></i>a cada {{ p.intervalo_km }} km</span>{% endif %}
+                            {% if p.intervalo_meses %}<span><i class="bi bi-calendar3 me-1"></i>a cada {{ p.intervalo_meses }} meses</span>{% endif %}
+                        </div>
+                        <div class="small mt-1">
+                            {% if p.next_km %}<span class="me-3 text-muted">Próxima: <strong style="color:var(--vm-text)">{{ p.next_km }} km</strong></span>{% endif %}
+                            {% if p.next_date %}<span class="text-muted">Data: <strong style="color:var(--vm-text)">{{ p.next_date }}</strong></span>{% endif %}
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column align-items-end gap-2">
+                        {% if st == 'Vencida' %}<span class="badge badge-danger">Vencida</span>
+                        {% elif st == 'Quase a Vencer' %}<span class="badge badge-warn">Quase a Vencer</span>
+                        {% else %}<span class="badge badge-ok">OK</span>{% endif %}
+                        <div class="d-flex gap-1">
+                            <a href="{{ url_for('plans.add_record', plan_id=p.id) }}" class="btn btn-sm py-0 px-2" style="border:1px solid var(--vm-border);color:var(--vm-accent);font-size:.78rem">Registar</a>
+                            <form method="POST" action="{{ url_for('plans.delete', plan_id=p.id) }}" onsubmit="return confirm('Remover plano?')">
+                                <button class="btn btn-sm py-0 px-2" style="border:1px solid var(--vm-border);color:var(--vm-danger);font-size:.78rem"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <!-- Histórico de manutenções do plano -->
+                {% if p.records %}
+                <div class="mt-2 pt-2" style="border-top:1px solid var(--vm-border)">
+                    <div class="small text-muted mb-1">Últimas manutenções</div>
+                    {% for r in p.records|sort(attribute='data', reverse=True)[:3] %}
+                    <div class="d-flex justify-content-between small py-1">
+                        <span>{{ r.data }}</span>
+                        <span>{{ r.km }} km</span>
+                        {% if r.custo %}<span style="color:var(--vm-ok)">{{ r.custo }}€</span>{% endif %}
+                        {% if r.notas %}<span class="text-muted" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.notas }}</span>{% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="card p-4 text-center">
+            <i class="bi bi-tools" style="font-size:1.8rem;color:var(--vm-text-muted)"></i>
+            <p class="text-muted small mt-2 mb-2">Ainda não tens planos de manutenção.</p>
+            <a href="{{ url_for('plans.create', vehicle_id=vehicle.id) }}" class="btn btn-sm btn-primary mx-auto" style="width:fit-content">Criar primeiro plano</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelector('input[name="data"]').valueAsDate = new Date();
+</script>
+{% endblock %}

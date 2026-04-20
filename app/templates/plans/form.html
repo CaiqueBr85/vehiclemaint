@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Novo Plano · VehicleMaint{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-7 col-lg-5">
+        <div class="d-flex align-items-center gap-2 mb-4">
+            <a href="{{ url_for('vehicles.detail', vehicle_id=vehicle.id) }}" class="btn btn-sm" style="border:1px solid var(--vm-border);color:var(--vm-text)"><i class="bi bi-arrow-left"></i></a>
+            <h1 class="h5 fw-bold mb-0">Novo Plano de Manutenção</h1>
+        </div>
+        <p class="text-muted small mb-3">Veículo: <strong>{{ vehicle.marca }} {{ vehicle.modelo }}</strong></p>
+        <div class="card p-4">
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label small text-muted">NOME DO PLANO</label>
+                    <input type="text" name="nome" class="form-control" placeholder="Ex: Troca de óleo" required>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small text-muted">INTERVALO (km)</label>
+                        <input type="number" name="intervalo_km" class="form-control" placeholder="Ex: 6000" min="1">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small text-muted">INTERVALO (meses)</label>
+                        <input type="number" name="intervalo_meses" class="form-control" placeholder="Ex: 12" min="1">
+                    </div>
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <label class="form-label small text-muted">ALERTA (km antes)</label>
+                        <input type="number" name="margem_alerta_km" class="form-control" value="500" min="0">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small text-muted">ALERTA (dias antes)</label>
+                        <input type="number" name="margem_alerta_dias" class="form-control" value="30" min="0">
+                    </div>
+                </div>
+                <p class="small text-muted mb-4"><i class="bi bi-info-circle me-1"></i>O ponto de partida será o odómetro atual do veículo ({{ vehicle.current_km }} km) e a data de hoje.</p>
+                <button type="submit" class="btn btn-primary w-100">Criar Plano</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
