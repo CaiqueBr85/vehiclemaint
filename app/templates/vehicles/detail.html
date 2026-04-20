@@ -11,7 +11,6 @@
 </div>
 
 <div class="row g-4">
-    <!-- Odómetro -->
     <div class="col-12 col-lg-4">
         <div class="card p-3 mb-3">
             <div class="d-flex align-items-center gap-2 mb-3">
@@ -32,7 +31,7 @@
                 </div>
             </form>
         </div>
-        <!-- Histórico odómetro -->
+
         {% if vehicle.odometer_logs %}
         <div class="card p-3">
             <div class="small fw-600 mb-2 text-muted">Histórico de leituras</div>
@@ -48,7 +47,6 @@
         {% endif %}
     </div>
 
-    <!-- Planos de manutenção -->
     <div class="col-12 col-lg-8">
         <div class="d-flex align-items-center justify-content-between mb-3">
             <span class="fw-600">Planos de Manutenção</span>
@@ -82,16 +80,20 @@
                         </div>
                     </div>
                 </div>
-                <!-- Histórico de manutenções do plano -->
                 {% if p.records %}
                 <div class="mt-2 pt-2" style="border-top:1px solid var(--vm-border)">
                     <div class="small text-muted mb-1">Últimas manutenções</div>
-                    {% for r in p.records|sort(attribute='data', reverse=True)[:3] %}
-                    <div class="d-flex justify-content-between small py-1">
+                    {% set last_records = p.records|sort(attribute='data', reverse=True) %}
+                    {% for r in last_records[:3] %}
+                    <div class="d-flex justify-content-between small py-1 gap-2">
                         <span>{{ r.data }}</span>
                         <span>{{ r.km }} km</span>
                         {% if r.custo %}<span style="color:var(--vm-ok)">{{ r.custo }}€</span>{% endif %}
-                        {% if r.notas %}<span class="text-muted" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.notas }}</span>{% endif %}
+                        {% if r.notas %}
+                        <span class="text-muted" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                            {{ r.notas }}
+                        </span>
+                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>

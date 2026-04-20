@@ -12,7 +12,7 @@
 </div>
 
 {% if plans_vencidas or plans_quase %}
-<div class="card mb-4" style="border-color:rgba(221,105,116,.4)">
+<div class="card mb-4" style="border-color:rgba(240,138,148,.35)">
     <div class="card-body py-3">
         <div class="d-flex align-items-center gap-2 mb-2">
             <i class="bi bi-exclamation-triangle-fill" style="color:var(--vm-danger)"></i>
@@ -43,10 +43,10 @@
     {% for v in vehicles %}
     {% set st = v.status_summary %}
     <div class="col-12 col-md-6 col-lg-4">
-        <div class="card h-100 p-3" style="transition:.18s">
+        <div class="card h-100 p-3" style="transition:.18s; min-height: 200px;">
             <div class="d-flex align-items-start justify-content-between mb-2">
                 <div>
-                    <div class="fw-700">{{ v.marca }} {{ v.modelo }}</div>
+                    <div class="fw-700" style="color: var(--vm-text);">{{ v.marca }} {{ v.modelo }}</div>
                     <div class="small text-muted">{{ v.matricula or '—' }} {% if v.ano %}· {{ v.ano }}{% endif %}</div>
                 </div>
                 {% if st == 'Vencida' %}
@@ -57,11 +57,15 @@
                     <span class="badge badge-ok px-2">OK</span>
                 {% endif %}
             </div>
-            <div class="small text-muted mb-3">
+            <div class="small mb-2" style="color: var(--vm-text-muted);">
                 <i class="bi bi-speedometer2 me-1"></i>{{ v.current_km|int }} km
                 {% if v.combustivel %} · {{ v.combustivel }}{% endif %}
             </div>
-            <a href="{{ url_for('vehicles.detail', vehicle_id=v.id) }}" class="btn btn-sm w-100" style="border:1px solid var(--vm-border);color:var(--vm-text);font-size:.85rem">
+            <div class="small mb-3" style="color: var(--vm-text-muted);">
+                {% set active_plans = v.plans|selectattr('ativo')|list %}
+                {{ active_plans|length }} plano{{ 's' if active_plans|length != 1 else '' }} ativo{{ 's' if active_plans|length != 1 else '' }}
+            </div>
+            <a href="{{ url_for('vehicles.detail', vehicle_id=v.id) }}" class="btn btn-sm w-100" style="border:1px solid var(--vm-border);color:var(--vm-text);font-size:.85rem; background: rgba(255,255,255,.03);">
                 Ver detalhe <i class="bi bi-arrow-right ms-1"></i>
             </a>
         </div>
