@@ -1,52 +1,165 @@
 {% extends "base.html" %}
 {% block title %}Registar Manutenção · VehicleMaint{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-12 col-md-7 col-lg-5">
-        <div class="d-flex align-items-center gap-2 mb-4">
-            <a href="{{ url_for('vehicles.detail', vehicle_id=vehicle.id) }}" class="btn btn-sm" style="border:1px solid var(--vm-border);color:var(--vm-text)"><i class="bi bi-arrow-left"></i></a>
-            <h1 class="h5 fw-bold mb-0">Registar Manutenção</h1>
-        </div>
-        <div class="card p-3 mb-3" style="border-color:rgba(79,152,163,.3)">
-            <div class="small text-muted">Plano</div>
-            <div class="fw-600">{{ plan.nome }}</div>
-            <div class="small text-muted mt-1">{{ vehicle.marca }} {{ vehicle.modelo }} · {{ vehicle.matricula or '—' }}</div>
-            {% set st = plan.status %}
-            {% if st == 'Vencida' %}<span class="badge badge-danger mt-1">Vencida</span>
-            {% elif st == 'Quase a Vencer' %}<span class="badge badge-warn mt-1">Quase a Vencer</span>
-            {% endif %}
-        </div>
-        <div class="card p-4">
-            <form method="POST">
-                <div class="row g-3">
-                    <div class="col-6">
-                        <label class="form-label small text-muted">DATA</label>
-                        <input type="date" name="data" class="form-control" required>
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label small text-muted">QUILOMETRAGEM</label>
-                        <input type="number" name="km" class="form-control" placeholder="{{ vehicle.current_km }}" required min="0">
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label small text-muted">CUSTO (€)</label>
-                        <input type="number" name="custo" class="form-control" placeholder="0.00" step="0.01" min="0">
-                    </div>
-                    <div class="col-6"></div>
-                    <div class="col-12">
-                        <label class="form-label small text-muted">NOTAS</label>
-                        <textarea name="notas" class="form-control" rows="3" placeholder="Ex: Motul 7100 4T 10W-40..."></textarea>
-                    </div>
-                    <div class="col-12 mt-2">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-check2-circle me-1"></i>Guardar Manutenção
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
+
+<div class="d-flex align-items-center gap-2 mb-4">
+    <a href="{{ url_for('vehicles.detail', vehicle_id=plan.vehicle_id) }}" class="btn btn-sm"
+       style="border:1px solid var(--vm-border);color:var(--vm-text)">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+        <h1 class="h4 fw-bold mb-0">Registar Manutenção</h1>
+        <p class="small text-muted mb-0">
+            {{ plan.nome }} · {{ plan.vehicle.marca }} {{ plan.vehicle.modelo }}
+        </p>
     </div>
 </div>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+
+        <!-- Info do plano -->
+        <div class="card p-3 mb-3" style="border-color:rgba(94,174,189,.25);">
+            <div class="small fw-600 mb-2" style="color:var(--vm-accent);text-transform:uppercase;letter-spacing:.05em;">
+                <i class="bi bi-info-circle me-1"></i>Informação do Plano
+            </div>
+            <div class="row g-2 small">
+                <div class="col-6">
+                    <span class="text-muted">Plano:</span>
+                    <span class="fw-600 ms-1">{{ plan.nome }}</span>
+                </div>
+                <div class="col-6">
+                    <span class="text-muted">Km atual:</span>
+                    <span class="fw-600 ms-1">{{ plan.vehicle.current_km|int }} km</span>
+                </div>
+                {% if plan.intervalo_km %}
+                <div class="col-6">
+                    <span class="text-muted">Intervalo:</span>
+                    <span class="fw-600 ms-1">{{ plan.intervalo_km }} km</span>
+                </div>
+                {% endif %}
+                {% if plan.intervalo_meses %}
+                <div class="col-6">
+                    <span class="text-muted">Intervalo:</span>
+                    <span class="fw-600 ms-1">{{ plan.intervalo_meses }} meses</span>
+                </div>
+                {% endif %}
+                {% if plan.next_km %}
+                <div class="col-6">
+                    <span class="text-muted">Próxima km:</span>
+                    <strong class="ms-1" style="color:var(--vm-warn)">{{ plan.next_km }} km</strong>
+                </div>
+                {% endif %}
+                {% if plan.next_date %}
+                <div class="col-6">
+                    <span class="text-muted">Próxima data:</span>
+                    <strong class="ms-1" style="color:var(--vm-warn)">{{ plan.next_date }}</strong>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Formulário -->
+        <div class="card p-4">
+            <form method="POST">
+
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-600">
+                            <i class="bi bi-calendar3 me-1" style="color:var(--vm-accent)"></i>
+                            Data <span style="color:var(--vm-danger)">*</span>
+                        </label>
+                        <input type="date" name="data" class="form-control"
+                               id="dataInput" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-600">
+                            <i class="bi bi-speedometer2 me-1" style="color:var(--vm-accent)"></i>
+                            Km na manutenção <span style="color:var(--vm-danger)">*</span>
+                        </label>
+                        <input type="number" name="km" class="form-control"
+                               placeholder="{{ plan.vehicle.current_km|int }}"
+                               value="{{ plan.vehicle.current_km|int }}"
+                               min="0" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-600">
+                        <i class="bi bi-currency-euro me-1" style="color:var(--vm-ok)"></i>
+                        Custo (€)
+                    </label>
+                    <input type="number" name="custo" class="form-control"
+                           placeholder="Ex: 45.00" min="0" step="0.01">
+                    <div class="form-text" style="color:var(--vm-text-muted)">
+                        Opcional — regista o custo desta manutenção.
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-600">
+                        <i class="bi bi-shop me-1" style="color:var(--vm-accent)"></i>
+                        Oficina / Local
+                    </label>
+                    <input type="text" name="oficina" class="form-control"
+                           placeholder="Ex: Oficina do João, Concessionário BMW...">
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-600">
+                        <i class="bi bi-card-text me-1" style="color:var(--vm-accent)"></i>
+                        Notas
+                    </label>
+                    <textarea name="notas" class="form-control" rows="3"
+                              placeholder="Observações, peças substituídas, próximos trabalhos..."></textarea>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1">
+                        <i class="bi bi-check-lg me-1"></i>Guardar Manutenção
+                    </button>
+                    <a href="{{ url_for('vehicles.detail', vehicle_id=plan.vehicle_id) }}"
+                       class="btn btn-sm px-3"
+                       style="border:1px solid var(--vm-border);color:var(--vm-text-muted);">
+                        Cancelar
+                    </a>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- Histórico do plano -->
+        {% if plan.records %}
+        <div class="card p-3 mt-3">
+            <div class="small fw-600 mb-2 text-muted text-uppercase" style="letter-spacing:.05em;">
+                <i class="bi bi-clock-history me-1"></i>Histórico deste plano
+            </div>
+            {% set records = plan.records|sort(attribute='data', reverse=True) %}
+            {% for r in records[:5] %}
+            <div class="d-flex justify-content-between align-items-center small py-2"
+                 style="border-bottom:1px solid var(--vm-border)">
+                <span style="color:var(--vm-text-muted)">{{ r.data }}</span>
+                <span class="fw-600">{{ r.km }} km</span>
+                {% if r.custo %}
+                <span style="color:var(--vm-ok)">{{ r.custo }}€</span>
+                {% endif %}
+                {% if r.notas %}
+                <span class="text-muted"
+                      style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                    {{ r.notas }}
+                </span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
 {% endblock %}
 {% block scripts %}
-<script>document.querySelector('input[name="data"]').valueAsDate = new Date();</script>
+<script>
+    document.getElementById('dataInput').valueAsDate = new Date();
+</script>
 {% endblock %}

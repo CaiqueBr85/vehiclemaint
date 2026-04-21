@@ -1,43 +1,156 @@
 {% extends "base.html" %}
 {% block title %}Novo Plano · VehicleMaint{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-12 col-md-7 col-lg-5">
-        <div class="d-flex align-items-center gap-2 mb-4">
-            <a href="{{ url_for('vehicles.detail', vehicle_id=vehicle.id) }}" class="btn btn-sm" style="border:1px solid var(--vm-border);color:var(--vm-text)"><i class="bi bi-arrow-left"></i></a>
-            <h1 class="h5 fw-bold mb-0">Novo Plano de Manutenção</h1>
-        </div>
-        <p class="text-muted small mb-3">Veículo: <strong>{{ vehicle.marca }} {{ vehicle.modelo }}</strong></p>
-        <div class="card p-4">
-            <form method="POST">
-                <div class="mb-3">
-                    <label class="form-label small text-muted">NOME DO PLANO</label>
-                    <input type="text" name="nome" class="form-control" placeholder="Ex: Troca de óleo" required>
-                </div>
-                <div class="row g-3 mb-3">
-                    <div class="col-6">
-                        <label class="form-label small text-muted">INTERVALO (km)</label>
-                        <input type="number" name="intervalo_km" class="form-control" placeholder="Ex: 6000" min="1">
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label small text-muted">INTERVALO (meses)</label>
-                        <input type="number" name="intervalo_meses" class="form-control" placeholder="Ex: 12" min="1">
-                    </div>
-                </div>
-                <div class="row g-3 mb-4">
-                    <div class="col-6">
-                        <label class="form-label small text-muted">ALERTA (km antes)</label>
-                        <input type="number" name="margem_alerta_km" class="form-control" value="500" min="0">
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label small text-muted">ALERTA (dias antes)</label>
-                        <input type="number" name="margem_alerta_dias" class="form-control" value="30" min="0">
-                    </div>
-                </div>
-                <p class="small text-muted mb-4"><i class="bi bi-info-circle me-1"></i>O ponto de partida será o odómetro atual do veículo ({{ vehicle.current_km }} km) e a data de hoje.</p>
-                <button type="submit" class="btn btn-primary w-100">Criar Plano</button>
-            </form>
-        </div>
+
+<div class="d-flex align-items-center gap-2 mb-4">
+    <a href="{{ url_for('vehicles.detail', vehicle_id=vehicle.id) }}" class="btn btn-sm"
+       style="border:1px solid var(--vm-border);color:var(--vm-text)">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+        <h1 class="h4 fw-bold mb-0">Novo Plano de Manutenção</h1>
+        <p class="small text-muted mb-0">{{ vehicle.marca }} {{ vehicle.modelo }} · {{ vehicle.matricula or '—' }}</p>
     </div>
 </div>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="card p-4">
+            <form method="POST" id="planForm">
+
+                <div class="mb-3">
+                    <label class="form-label small fw-600">
+                        Nome do Plano <span style="color:var(--vm-danger)">*</span>
+                    </label>
+                    <input type="text" name="nome" class="form-control"
+                           placeholder="Ex: Troca de óleo, Filtro de ar, Revisão geral..."
+                           required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-600">Notas</label>
+                    <textarea name="notas" class="form-control" rows="2"
+                              placeholder="Observações opcionais..."></textarea>
+                </div>
+
+                <hr style="border-color:var(--vm-border);margin:1.2rem 0">
+
+                <div class="small fw-600 mb-3" style="color:var(--vm-text-muted);text-transform:uppercase;letter-spacing:.05em;">
+                    Intervalos de manutenção
+                </div>
+                <p class="small text-muted mb-3">
+                    Define pelo menos um intervalo — por quilómetros, por tempo, ou ambos.
+                </p>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-600">
+                            <i class="bi bi-speedometer2 me-1" style="color:var(--vm-accent)"></i>
+                            Intervalo (km)
+                        </label>
+                        <input type="number" name="intervalo_km" id="intervalo_km"
+                               class="form-control" placeholder="Ex: 10000" min="1">
+                        <div class="form-text" style="color:var(--vm-text-muted)">
+                            A cada quantos km fazer.
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-600">
+                            <i class="bi bi-calendar3 me-1" style="color:var(--vm-accent)"></i>
+                            Intervalo (meses)
+                        </label>
+                        <input type="number" name="intervalo_meses" id="intervalo_meses"
+                               class="form-control" placeholder="Ex: 12" min="1">
+                        <div class="form-text" style="color:var(--vm-text-muted)">
+                            A cada quantos meses fazer.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-600">
+                        <i class="bi bi-calendar-check me-1" style="color:var(--vm-accent)"></i>
+                        Data da última manutenção
+                    </label>
+                    <input type="date" name="ultima_data" class="form-control" id="ultima_data">
+                    <div class="form-text" style="color:var(--vm-text-muted)">
+                        Se já fizeste esta manutenção, indica quando foi a última vez.
+                    </div>
+                </div>
+
+                <div id="alertaIntervalo" class="alert alert-warning d-none py-2 small">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    Define pelo menos um intervalo (km ou meses).
+                </div>
+
+                <div class="d-flex gap-2 mt-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1">
+                        <i class="bi bi-check-lg me-1"></i>Criar Plano
+                    </button>
+                    <a href="{{ url_for('vehicles.detail', vehicle_id=vehicle.id) }}"
+                       class="btn btn-sm px-3"
+                       style="border:1px solid var(--vm-border);color:var(--vm-text-muted);">
+                        Cancelar
+                    </a>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- Exemplos de planos comuns -->
+        <div class="card p-3 mt-3">
+            <div class="small fw-600 mb-2 text-muted text-uppercase" style="letter-spacing:.05em;">
+                Exemplos comuns
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                {% set exemplos = [
+                    ('Troca de óleo', 10000, 12),
+                    ('Filtro de ar', 20000, 24),
+                    ('Filtro de combustível', 30000, 24),
+                    ('Revisão geral', 20000, 12),
+                    ('Pneus', 40000, 0),
+                    ('Travões', 30000, 24),
+                    ('Bateria', 0, 36)
+                ] %}
+                {% for nome, km, meses in exemplos %}
+                <button type="button" class="btn btn-sm exemplo-btn"
+                        style="border:1px solid var(--vm-border);color:var(--vm-text-muted);font-size:.78rem;"
+                        data-nome="{{ nome }}"
+                        data-km="{{ km }}"
+                        data-meses="{{ meses }}">
+                    {{ nome }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+    // Preencher data de hoje por defeito
+    document.getElementById('ultima_data').valueAsDate = new Date();
+
+    // Botões de exemplo
+    document.querySelectorAll('.exemplo-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelector('[name="nome"]').value = btn.dataset.nome;
+            if (btn.dataset.km > 0) document.getElementById('intervalo_km').value = btn.dataset.km;
+            if (btn.dataset.meses > 0) document.getElementById('intervalo_meses').value = btn.dataset.meses;
+        });
+    });
+
+    // Validação: pelo menos 1 intervalo
+    document.getElementById('planForm').addEventListener('submit', function(e) {
+        const km = document.getElementById('intervalo_km').value;
+        const meses = document.getElementById('intervalo_meses').value;
+        if (!km && !meses) {
+            e.preventDefault();
+            document.getElementById('alertaIntervalo').classList.remove('d-none');
+            document.getElementById('intervalo_km').focus();
+        }
+    });
+</script>
 {% endblock %}

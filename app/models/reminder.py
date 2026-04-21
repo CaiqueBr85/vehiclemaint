@@ -8,7 +8,7 @@ class Reminder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     plan_id = db.Column(db.Integer, db.ForeignKey("maintenance_plans.id"), nullable=False)
     agendado_para = db.Column(db.Date)
-    estado = db.Column(db.String(20), default="PENDENTE")  # PENDENTE | ENVIADO | CANCELADO
+    estado = db.Column(db.String(20), default="PENDENTE")
     enviado_em = db.Column(db.DateTime)
 
     plan = db.relationship("MaintenancePlan", back_populates="reminders")

@@ -1,0 +1,417 @@
+{% extends "base.html" %}
+{% block title %}O meu perfil · VehicleMaint{% endblock %}
+
+{% block content %}
+<style>
+  .avatar-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--primary, #3ab8c8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .stat-card {
+    background: #16202b;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 12px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    transition: transform .2s;
+  }
+  .stat-card:hover { transform: translateY(-3px); }
+  .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.1;
+    margin: .25rem 0;
+  }
+  .stat-label { font-size: .8rem; color: #6c757d; }
+  .profile-card {
+    background: #16202b;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+  .card-section-title {
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    padding-bottom: .75rem;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+  }
+  .vm-label {
+    display: block;
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: #6c757d;
+    margin-bottom: .4rem;
+  }
+  .input-pass-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .input-pass-wrap .vm-input {
+    padding-right: 2.8rem;
+    flex: 1;
+  }
+  .btn-toggle-pass {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    z-index: 5;
+  }
+  .btn-toggle-pass:hover { color: #fff; }
+  .danger-zone {
+    background: rgba(220,53,69,.05);
+    border: 1px solid rgba(220,53,69,.3);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+  }
+</style>
+
+<div class="container py-4">
+
+  {# ── Cabeçalho do perfil ── #}
+  <div class="d-flex align-items-center mb-4 gap-3">
+    <div class="avatar-circle">
+      {{ user.nome[0]|upper }}
+    </div>
+    <div>
+      <h4 class="mb-0 fw-semibold text-white">{{ user.nome }}</h4>
+      <small class="text-muted">{{ user.email }}</small>
+    </div>
+  </div>
+
+  {# ── Estatísticas ── #}
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="stat-card">
+        <i class="bi bi-car-front-fill fs-2 mb-2" style="color:var(--primary)"></i>
+        <div class="stat-number">{{ total_veiculos }}</div>
+        <div class="stat-label">Veículos registados</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card">
+        <i class="bi bi-wrench-adjustable fs-2 mb-2 text-success"></i>
+        <div class="stat-number">{{ total_manutencoes }}</div>
+        <div class="stat-label">Manutenções registadas</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card">
+        <i class="bi bi-calendar-check fs-2 mb-2 text-info"></i>
+        <div class="stat-number" style="font-size:1.4rem">{{ membro_desde }}</div>
+        <div class="stat-label">Membro desde</div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="row g-4">
+
+    {# ── Informações pessoais ── #}
+    <div class="col-lg-6">
+      <div class="profile-card">
+        <h5 class="card-section-title">
+          <i class="bi bi-person-fill me-2" style="color:var(--primary)"></i>Informações pessoais
+        </h5>
+        <form method="POST">
+          <input type="hidden" name="action" value="update_info">
+          <div class="mb-3">
+            <label class="vm-label">Nome completo</label>
+            <input type="text" name="nome" class="form-control vm-input" value="{{ user.nome }}" required>
+          </div>
+          <div class="mb-4">
+            <label class="vm-label">Email</label>
+            <input type="email" name="email" class="form-control vm-input" value="{{ user.email }}" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 fw-semibold">
+            <i class="bi bi-check-lg me-1"></i>Guardar alterações
+          </button>
+        </form>
+      </div>
+    </div>
+
+    {# ── Alterar senha ── #}
+    <div class="col-lg-6">
+      <div class="profile-card">
+        <h5 class="card-section-title">
+          <i class="bi bi-lock-fill me-2 text-warning"></i>Alterar senha
+        </h5>
+        <form method="POST" id="changePassForm">
+          <input type="hidden" name="action" value="change_password">
+
+          <div class="mb-3">
+            <label class="vm-label">Senha atual</label>
+            <div class="input-pass-wrap">
+              <input type="password" name="senha_atual" id="senhaAtual" class="form-control vm-input" required>
+              <button type="button" class="btn-toggle-pass" onclick="togglePass('senhaAtual','icon0')">
+                <i class="bi bi-eye" id="icon0"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="vm-label">Nova senha</label>
+            <div class="input-pass-wrap">
+              <input type="password" name="nova_senha" id="novaSenha" class="form-control vm-input" minlength="8" required>
+              <button type="button" class="btn-toggle-pass" onclick="togglePass('novaSenha','icon1')">
+                <i class="bi bi-eye" id="icon1"></i>
+              </button>
+            </div>
+            <div id="strengthWrap" class="mt-2" style="display:none">
+              <div style="height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden">
+                <div id="strengthBar" style="height:100%;width:0;border-radius:2px;transition:all .3s"></div>
+              </div>
+              <small id="strengthLabel" class="mt-1 d-block"></small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="vm-label">Confirmar nova senha</label>
+            <div class="input-pass-wrap">
+              <input type="password" name="confirmar_senha" id="confirmarSenha" class="form-control vm-input" required>
+              <button type="button" class="btn-toggle-pass" onclick="togglePass('confirmarSenha','icon2')">
+                <i class="bi bi-eye" id="icon2"></i>
+              </button>
+            </div>
+            <small id="matchMsg" class="mt-1 d-block"></small>
+          </div>
+
+          <button type="submit" class="btn btn-warning w-100 fw-semibold text-dark">
+            <i class="bi bi-key-fill me-1"></i>Alterar senha
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  {# ── Zona de perigo ── #}
+  <div class="mt-4">
+    <div class="danger-zone">
+      <h6 class="text-danger fw-semibold mb-1">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>Zona de perigo
+      </h6>
+      <p class="text-muted small mb-3">
+        A eliminação da conta é permanente e irreversível. Todos os veículos e manutenções serão apagados.
+      </p>
+      <button class="btn btn-outline-danger btn-sm fw-semibold"
+              data-bs-toggle="modal" data-bs-target="#modalEliminar">
+        <i class="bi bi-trash3-fill me-1"></i>Eliminar conta
+      </button>
+    </div>
+  </div>
+
+</div>
+
+{# ── Modal eliminar conta ── #}
+<div class="modal fade" id="modalEliminar" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background:#1a2332;border:1px solid #dc3545">
+      <div class="modal-header" style="border-bottom:1px solid rgba(220,53,69,.3)">
+        <h5 class="modal-title text-danger">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>Eliminar conta
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-white">
+        <p>Tens a certeza que queres eliminar a tua conta?</p>
+        <p class="text-muted small mb-0">
+          Todos os teus veículos, manutenções e dados associados serão <strong class="text-danger">permanentemente eliminados</strong>.
+        </p>
+      </div>
+      <div class="modal-footer" style="border-top:1px solid rgba(255,255,255,.1)">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <form method="POST">
+          <input type="hidden" name="action" value="delete_account">
+          <button type="submit" class="btn btn-danger btn-sm fw-semibold">
+            <i class="bi bi-trash3-fill me-1"></i>Confirmar eliminação
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── Avatar ── */
+  .avatar-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--primary, #3ab8c8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  /* ── Stat cards ── */
+  .stat-card {
+    background: var(--dark-card, #16202b);
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 12px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    transition: transform .2s;
+  }
+  .stat-card:hover { transform: translateY(-3px); }
+  .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.1;
+    margin: .25rem 0;
+  }
+  .stat-label { font-size: .8rem; color: #6c757d; }
+
+  /* ── Profile cards ── */
+  .profile-card {
+    background: var(--dark-card, #16202b);
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+  .card-section-title {
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    padding-bottom: .75rem;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+  }
+
+  /* ── Labels ── */
+  .vm-label {
+    display: block;
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: #6c757d;
+    margin-bottom: .4rem;
+  }
+
+  /* ── Password input wrapper ── */
+  .input-pass-wrap { position: relative; }
+  .input-pass-wrap .vm-input { padding-right: 2.8rem; }
+  .btn-toggle-pass {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+  }
+  .btn-toggle-pass:hover { color: #fff; }
+
+  /* ── Zona de perigo ── */
+  .danger-zone {
+    background: rgba(220, 53, 69, .05);
+    border: 1px solid rgba(220, 53, 69, .3);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  /* ── Toggle visibilidade da senha ── */
+  function togglePass(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon  = document.getElementById(iconId);
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.className = 'bi bi-eye-slash';
+    } else {
+      input.type = 'password';
+      icon.className = 'bi bi-eye';
+    }
+  }
+
+  /* ── Força da senha ── */
+  const novaSenha   = document.getElementById('novaSenha');
+  const strengthBar = document.getElementById('strengthBar');
+  const strengthLbl = document.getElementById('strengthLabel');
+  const strengthWrp = document.getElementById('strengthWrap');
+
+  const levels = [
+    { pct: '25%', color: '#dc3545', text: 'Fraca',    cls: 'text-danger'  },
+    { pct: '50%', color: '#fd7e14', text: 'Razoável', cls: 'text-warning' },
+    { pct: '75%', color: '#ffc107', text: 'Boa',      cls: 'text-warning' },
+    { pct: '100%',color: '#20c997', text: 'Forte',    cls: 'text-success' },
+  ];
+
+  novaSenha.addEventListener('input', function () {
+    const v = this.value;
+    if (!v) { strengthWrp.style.display = 'none'; return; }
+    strengthWrp.style.display = 'block';
+    let score = 0;
+    if (v.length >= 8)            score++;
+    if (/[A-Z]/.test(v))          score++;
+    if (/[0-9]/.test(v))          score++;
+    if (/[^A-Za-z0-9]/.test(v))   score++;
+    const lvl = levels[score - 1] || levels[0];
+    strengthBar.style.width      = lvl.pct;
+    strengthBar.style.background = lvl.color;
+    strengthLbl.textContent      = lvl.text;
+    strengthLbl.className        = 'mt-1 d-block ' + lvl.cls;
+  });
+
+  /* ── Confirmação de senha em tempo real ── */
+  const confirmarSenha = document.getElementById('confirmarSenha');
+  const matchMsg       = document.getElementById('matchMsg');
+
+    confirmarSenha.addEventListener('input', function () {
+    if (!this.value) {
+      matchMsg.style.display = 'none';
+      return;
+    }
+    matchMsg.style.display = 'block';
+    if (this.value === novaSenha.value) {
+      matchMsg.textContent = '✓ Passwords coincidem';
+      matchMsg.className   = 'mt-1 d-block text-success';
+    } else {
+      matchMsg.textContent = '✗ Passwords não coincidem';
+      matchMsg.className   = 'mt-1 d-block text-danger';
+    }
+  });
+
+  /* ── Bloquear submit se passwords não coincidem ── */
+  document.getElementById('changePassForm').addEventListener('submit', function (e) {
+    if (novaSenha.value !== confirmarSenha.value) {
+      e.preventDefault();
+      matchMsg.textContent   = '✗ Passwords não coincidem';
+      matchMsg.className     = 'mt-1 d-block text-danger';
+      matchMsg.style.display = 'block';
+      confirmarSenha.focus();
+    }
+  });
+</script>
+{% endblock %}

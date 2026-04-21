@@ -1,29 +1,309 @@
 {% extends "base.html" %}
 {% block title %}Criar conta · VehicleMaint{% endblock %}
+{% block head %}
+<style>
+    body { background: var(--vm-bg); }
+    .auth-wrap {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    .auth-card {
+        display: flex;
+        width: 100%;
+        max-width: 900px;
+        min-height: 560px;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 32px 80px rgba(0,0,0,.5);
+        border: 1px solid var(--vm-border);
+    }
+    .auth-left {
+        flex: 1;
+        background: linear-gradient(145deg, #1a2f35, #0f1e24);
+        padding: 3rem 2.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        overflow: hidden;
+    }
+    .auth-left::before {
+        content: '';
+        position: absolute;
+        top: -60px; right: -60px;
+        width: 280px; height: 280px;
+        background: radial-gradient(circle, rgba(94,174,189,.18) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    .auth-left::after {
+        content: '';
+        position: absolute;
+        bottom: -40px; left: -40px;
+        width: 200px; height: 200px;
+        background: radial-gradient(circle, rgba(94,174,189,.10) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    .auth-right {
+        flex: 1;
+        background: var(--vm-surface);
+        padding: 3rem 2.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .auth-feature {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        margin-bottom: .9rem;
+        font-size: .9rem;
+        color: rgba(255,255,255,.75);
+    }
+    .auth-feature-icon {
+        width: 32px; height: 32px;
+        border-radius: 8px;
+        background: rgba(94,174,189,.15);
+        border: 1px solid rgba(94,174,189,.25);
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        color: var(--vm-accent);
+        font-size: .85rem;
+    }
+    .form-control {
+        padding: .65rem .9rem;
+        font-size: .95rem;
+    }
+    .form-label {
+        font-size: .8rem;
+        font-weight: 600;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        color: var(--vm-text-muted);
+        margin-bottom: .4rem;
+    }
+    .btn-auth {
+        background: var(--vm-accent);
+        border: none;
+        color: #fff;
+        padding: .7rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: .95rem;
+        width: 100%;
+        transition: .18s;
+        cursor: pointer;
+    }
+    .btn-auth:hover {
+        background: var(--vm-accent-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 8px 20px rgba(94,174,189,.25);
+    }
+    .strength-bar {
+        height: 4px;
+        border-radius: 2px;
+        background: var(--vm-border);
+        margin-top: .4rem;
+        overflow: hidden;
+    }
+    .strength-fill {
+        height: 100%;
+        border-radius: 2px;
+        transition: .3s;
+        width: 0%;
+    }
+    @media (max-width: 640px) {
+        .auth-left { display: none; }
+        .auth-card { max-width: 420px; }
+    }
+</style>
+{% endblock %}
 {% block content %}
-<div class="d-flex align-items-center justify-content-center" style="min-height:80vh">
-    <div class="card p-4" style="width:100%;max-width:420px">
-        <div class="text-center mb-4">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--vm-accent)" stroke-width="2" class="mb-3"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-            <h1 class="h4 fw-bold mb-1">Criar conta</h1>
-            <p class="text-muted small">Começa a gerir as manutenções do teu veículo</p>
+<div class="auth-wrap">
+    <div class="auth-card">
+
+        <!-- Lado esquerdo — branding -->
+        <div class="auth-left">
+            <div style="position:relative;z-index:1">
+                <div class="d-flex align-items-center gap-2 mb-4">
+                    <div style="width:38px;height:38px;background:var(--vm-accent);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+                            ircle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+                        </svg>
+                    </div>
+                    <span style="font-weight:700;font-size:1.15rem;color:#fff;">VehicleMaint</span>
+                </div>
+
+                <h2 style="color:#fff;font-weight:700;font-size:1.6rem;line-height:1.3;margin-bottom:.5rem;">
+                    Começa hoje.<br>É gratuito.
+                </h2>
+                <p style="color:rgba(255,255,255,.55);font-size:.9rem;margin-bottom:2rem;">
+                    Cria a tua conta e adiciona o primeiro veículo em menos de 2 minutos.
+                </p>
+
+                <div class="auth-feature">
+                    <div class="auth-feature-icon"><i class="bi bi-bell"></i></div>
+                    <span>Lembretes automáticos por email</span>
+                </div>
+                <div class="auth-feature">
+                    <div class="auth-feature-icon"><i class="bi bi-speedometer2"></i></div>
+                    <span>Registo de odómetro e histórico</span>
+                </div>
+                <div class="auth-feature">
+                    <div class="auth-feature-icon"><i class="bi bi-tools"></i></div>
+                    <span>Planos de manutenção personalizados</span>
+                </div>
+                <div class="auth-feature">
+                    <div class="auth-feature-icon"><i class="bi bi-car-front"></i></div>
+                    <span>Suporte para múltiplos veículos</span>
+                </div>
+            </div>
+
+            <div style="position:relative;z-index:1">
+                <p style="color:rgba(255,255,255,.3);font-size:.75rem;margin:0;">
+                    © 2026 VehicleMaint · TFC ISMAT
+                </p>
+            </div>
         </div>
-        <form method="POST">
-            <div class="mb-3">
-                <label class="form-label small text-muted text-uppercase" style="letter-spacing:.06em">NOME</label>
-                <input type="text" name="nome" class="form-control" placeholder="O teu nome" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label small text-muted text-uppercase" style="letter-spacing:.06em">EMAIL</label>
-                <input type="email" name="email" class="form-control" placeholder="exemplo@email.com" required>
-            </div>
+
+        <!-- Lado direito — formulário -->
+        <div class="auth-right">
             <div class="mb-4">
-                <label class="form-label small text-muted text-uppercase" style="letter-spacing:.06em">PASSWORD</label>
-                <input type="password" name="password" class="form-control" placeholder="Mínimo 8 caracteres" required minlength="8">
+                <h3 style="font-weight:700;font-size:1.4rem;color:var(--vm-text);margin-bottom:.25rem;">
+                    Criar conta
+                </h3>
+                <p style="color:var(--vm-text-muted);font-size:.9rem;">
+                    Preenche os dados para começar
+                </p>
             </div>
-            <button type="submit" class="btn btn-primary w-100 py-2">Criar conta</button>
-        </form>
-        <p class="text-center mt-3 small text-muted">Já tens conta? <a href="{{ url_for('auth.login') }}" style="color:var(--vm-accent)">Entrar</a></p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for cat, msg in messages %}
+                    <div class="alert alert-{{ cat }} py-2 small mb-3">{{ msg }}</div>
+                {% endfor %}
+            {% endwith %}
+
+            <form method="POST" id="registerForm">
+
+                <div class="mb-3">
+                    <label class="form-label">Nome completo</label>
+                    <input type="text" name="nome" class="form-control"
+                           placeholder="O teu nome" required autofocus
+                           minlength="2">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control"
+                           placeholder="o.teu@email.com" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <div style="position:relative;">
+                        <input type="password" name="password" id="passInput"
+                               class="form-control" placeholder="Mínimo 8 caracteres"
+                               required minlength="8"
+                               style="padding-right:2.8rem;"
+                               oninput="checkStrength(this.value)">
+                        <button type="button" onclick="togglePass()"
+                                style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--vm-text-muted);cursor:pointer;">
+                            <i class="bi bi-eye" id="passIcon"></i>
+                        </button>
+                    </div>
+                    <div class="strength-bar">
+                        <div class="strength-fill" id="strengthFill"></div>
+                    </div>
+                    <div class="mt-1" style="font-size:.75rem;color:var(--vm-text-muted);" id="strengthText"></div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Confirmar password</label>
+                    <input type="password" name="password_confirm" id="passConfirm"
+                           class="form-control" placeholder="Repete a password"
+                           required oninput="checkMatch()">
+                    <div class="mt-1" style="font-size:.75rem;" id="matchText"></div>
+                </div>
+
+                <button type="submit" class="btn-auth mb-3">
+                    <i class="bi bi-person-plus me-2"></i>Criar conta
+                </button>
+
+            </form>
+
+            <p class="text-center small" style="color:var(--vm-text-muted);">
+                Já tens conta?
+                <a href="{{ url_for('auth.login') }}"
+                   style="color:var(--vm-accent);text-decoration:none;font-weight:600;">
+                    Entrar
+                </a>
+            </p>
+        </div>
+
     </div>
 </div>
+{% endblock %}
+{% block scripts %}
+<script>
+function togglePass() {
+    const input = document.getElementById('passInput');
+    const icon = document.getElementById('passIcon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'bi bi-eye';
+    }
+}
+
+function checkStrength(val) {
+    const fill = document.getElementById('strengthFill');
+    const text = document.getElementById('strengthText');
+    let score = 0;
+    if (val.length >= 8) score++;
+    if (/[A-Z]/.test(val)) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+
+    const levels = [
+        { w: '0%',   color: 'transparent', label: '' },
+        { w: '25%',  color: '#dd6974',     label: 'Fraca' },
+        { w: '50%',  color: '#fdab43',     label: 'Razoável' },
+        { w: '75%',  color: '#5eaebd',     label: 'Boa' },
+        { w: '100%', color: '#6daa45',     label: 'Forte' },
+    ];
+    fill.style.width = levels[score].w;
+    fill.style.background = levels[score].color;
+    text.textContent = levels[score].label;
+    text.style.color = levels[score].color;
+}
+
+function checkMatch() {
+    const pass = document.getElementById('passInput').value;
+    const confirm = document.getElementById('passConfirm').value;
+    const text = document.getElementById('matchText');
+    if (confirm.length === 0) { text.textContent = ''; return; }
+    if (pass === confirm) {
+        text.textContent = '✓ Passwords coincidem';
+        text.style.color = '#6daa45';
+    } else {
+        text.textContent = '✗ Passwords não coincidem';
+        text.style.color = '#dd6974';
+    }
+}
+
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+    const pass = document.getElementById('passInput').value;
+    const confirm = document.getElementById('passConfirm').value;
+    if (pass !== confirm) {
+        e.preventDefault();
+        document.getElementById('matchText').textContent = '✗ Passwords não coincidem';
+        document.getElementById('matchText').style.color = '#dd6974';
+        document.getElementById('passConfirm').focus();
+    }
+});
+</script>
 {% endblock %}

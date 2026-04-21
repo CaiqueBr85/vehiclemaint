@@ -11,32 +11,51 @@ def get_current_user():
     return User.query.get(int(uid))
 
 
-def require_admin(f):
-    from functools import wraps
-    @wraps(f)
-    @jwt_required()
-    def decorated(*args, **kwargs):
-        user = get_current_user()
-        if not user or user.role != "admin":
-            flash("Acesso restrito a administradores.", "danger")
-            return redirect(url_for("dashboard.index"))
-        return f(*args, **kwargs)
-    return decorated
-
-
 @admin_bp.route("/users")
-@require_admin
+@jwt_required()
 def users():
     user = get_current_user()
+    if user.role != "admin":
+        flash("Acesso negado.", "danger")
+        return redirect(url_for("dashboard.index"))
     all_users = User.query.order_by(User.criado_em.desc()).all()
-    return render_template("admin/users.html", user=user, all_users=all_users)
+    return render_template("admin/users.html", user=user, users=all_users)
 
 
-@admin_bp.route("/users/<int:uid>/toggle", methods=["POST"])
-@require_admin
-def toggle_user(uid):
-    u = User.query.get_or_404(uid)
+@admin_bp.route("/users/<int:user_id>/toggle", methods=["POST"])
+@jwt_required()
+def toggle_user(user_id):
+    user = get_current_user()
+    if user.role != "admin":
+        return redirect(url_for("dashboard.index"))
+    u = User.query.get_or_404(user_id)
     u.ativo = not u.ativo
     db.session.commit()
-    flash(f"Utilizador {'ativado' if u.ativo else 'desativado'}.", "info")
+    flash(f"Utilizador {'ativado' if u.ativo else 'desativado'}.", "success")
+    return redirect(url_for("admin.users"))
+
+
+@admin_bp.route("/users/<int:user_id>/role", methods=["POST"])
+@jwt_required()
+def toggle_role(user_id):
+    user = get_current_user()
+    if user.role != "admin":
+        return redirect(url_for("dashboard.index"))
+    u = User.query.get_or_404(user_id)
+    u.role = "user" if u.role == "admin" else "admin"
+    db.session.commit()
+    flash(f"Role alterado para {u.role}.", "success")
+    return redirect(url_for("admin.users"))
+
+
+@admin_bp.route("/users/<int:user_id>/delete", methods=["POST"])
+@jwt_required()
+def delete_user(user_id):
+    user = get_current_user()
+    if user.role != "admin" or user.id == user_id:
+        return redirect(url_for("dashboard.index"))
+    u = User.query.get_or_404(user_id)
+    db.session.delete(u)
+    db.session.commit()
+    flash("Utilizador apagado.", "success")
     return redirect(url_for("admin.users"))

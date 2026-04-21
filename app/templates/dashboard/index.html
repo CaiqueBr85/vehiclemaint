@@ -1,91 +1,394 @@
 {% extends "base.html" %}
 {% block title %}Dashboard · VehicleMaint{% endblock %}
+{% block head %}
+<style>
+    .stat-card {
+        background: var(--vm-surface);
+        border: 1px solid var(--vm-border);
+        border-radius: 12px;
+        padding: 1.1rem 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .stat-icon {
+        width: 44px; height: 44px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    .stat-value {
+        font-size: 1.6rem;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--vm-text);
+    }
+    .stat-label {
+        font-size: .78rem;
+        color: var(--vm-text-muted);
+        margin-top: .2rem;
+    }
+    .vehicle-card {
+        background: var(--vm-surface);
+        border: 1px solid var(--vm-border);
+        border-radius: 14px;
+        padding: 1.25rem;
+        transition: .18s;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .vehicle-card:hover {
+        border-color: var(--vm-accent);
+        box-shadow: 0 8px 28px rgba(0,0,0,.25);
+        transform: translateY(-2px);
+    }
+    .progress-km {
+        height: 5px;
+        background: var(--vm-border);
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: .4rem;
+    }
+    .progress-km-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width .4s ease;
+    }
+    .timeline-item {
+        display: flex;
+        align-items: flex-start;
+        gap: .75rem;
+        padding: .65rem 0;
+        border-bottom: 1px solid var(--vm-border);
+    }
+    .timeline-item:last-child { border-bottom: none; }
+    .timeline-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        margin-top: .35rem;
+        flex-shrink: 0;
+    }
+    .section-title {
+        font-size: .72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .07em;
+        color: var(--vm-text-muted);
+        margin-bottom: .9rem;
+    }
+</style>
+{% endblock %}
 {% block content %}
+
+<!-- Header -->
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
         <h1 class="h4 fw-bold mb-0">Dashboard</h1>
-        <p class="text-muted small mb-0">Olá, {{ user.nome.split()[0] }} 👋</p>
+        <p class="small text-muted mb-0">Olá, {{ user.nome.split()[0] }} 👋</p>
     </div>
-    <a href="{{ url_for('vehicles.create') }}" class="btn btn-primary btn-sm">
+    <a href="{{ url_for('vehicles.create') }}" class="btn btn-primary btn-sm px-3">
         <i class="bi bi-plus-lg me-1"></i>Novo Veículo
     </a>
 </div>
 
+<!-- Estatísticas -->
+{% set total_veiculos = vehicles|length %}
+{% set total_vencidas = plans_vencidas|length %}
+{% set total_quase = plans_quase|length %}
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(94,174,189,.12);">
+                <i class="bi bi-car-front" style="color:var(--vm-accent)"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ total_veiculos }}</div>
+                <div class="stat-label">Veículo{{ 's' if total_veiculos != 1 else '' }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(109,170,69,.12);">
+                <i class="bi bi-check-circle" style="color:var(--vm-ok)"></i>
+            </div>
+            <div>
+                <div class="stat-value" style="color:var(--vm-ok)">
+                    {{ vehicles|selectattr('status_summary', 'equalto', 'OK')|list|length }}
+                </div>
+                <div class="stat-label">Em dia</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(253,171,67,.12);">
+                <i class="bi bi-clock-history" style="color:var(--vm-warn)"></i>
+            </div>
+            <div>
+                <div class="stat-value" style="color:var(--vm-warn)">{{ total_quase }}</div>
+                <div class="stat-label">Em breve</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(221,105,116,.12);">
+                <i class="bi bi-exclamation-circle" style="color:var(--vm-danger)"></i>
+            </div>
+            <div>
+                <div class="stat-value" style="color:var(--vm-danger)">{{ total_vencidas }}</div>
+                <div class="stat-label">Vencida{{ 's' if total_vencidas != 1 else '' }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alertas -->
 {% if plans_vencidas or plans_quase %}
-<div class="card mb-4" style="border-color:rgba(240,138,148,.35)">
+<div class="card mb-4" style="border-color:rgba(240,138,148,.3);">
     <div class="card-body py-3">
         <div class="d-flex align-items-center gap-2 mb-2">
             <i class="bi bi-exclamation-triangle-fill" style="color:var(--vm-danger)"></i>
-            <span class="fw-600 small text-uppercase" style="letter-spacing:.05em;color:var(--vm-danger)">Lembretes Ativos</span>
+            <span class="fw-600 small text-uppercase" style="letter-spacing:.05em;color:var(--vm-danger)">
+                Requer atenção
+            </span>
         </div>
         {% for v, p in plans_vencidas %}
-        <div class="d-flex align-items-center gap-2 mb-1">
-            <span class="badge badge-danger px-2 py-1" style="border-radius:6px;font-size:.72rem">VENCIDA</span>
-            <span class="small">{{ p.nome }} — {{ v.marca }} {{ v.modelo }}</span>
-            <a href="{{ url_for('plans.add_record', plan_id=p.id) }}" class="btn btn-sm ms-auto py-0 px-2" style="font-size:.78rem;color:var(--vm-accent);border:1px solid var(--vm-border)">Registar</a>
+        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+            <span class="badge badge-danger px-2 py-1" style="font-size:.72rem">VENCIDA</span>
+            <span class="small fw-600">{{ p.nome }}</span>
+            <span class="small text-muted">— {{ v.marca }} {{ v.modelo }}</span>
+            <a href="{{ url_for('plans.add_record', plan_id=p.id) }}"
+               class="btn btn-sm ms-auto py-0 px-2"
+               style="font-size:.78rem;color:var(--vm-accent);border:1px solid var(--vm-border)">
+                <i class="bi bi-wrench me-1"></i>Registar
+            </a>
         </div>
         {% endfor %}
         {% for v, p in plans_quase %}
-        <div class="d-flex align-items-center gap-2 mb-1">
-            <span class="badge badge-warn px-2 py-1" style="border-radius:6px;font-size:.72rem">EM BREVE</span>
-            <span class="small">{{ p.nome }} — {{ v.marca }} {{ v.modelo }}</span>
-            <a href="{{ url_for('plans.add_record', plan_id=p.id) }}" class="btn btn-sm ms-auto py-0 px-2" style="font-size:.78rem;color:var(--vm-accent);border:1px solid var(--vm-border)">Registar</a>
+        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+            <span class="badge badge-warn px-2 py-1" style="font-size:.72rem">EM BREVE</span>
+            <span class="small fw-600">{{ p.nome }}</span>
+            <span class="small text-muted">— {{ v.marca }} {{ v.modelo }}</span>
+            <a href="{{ url_for('plans.add_record', plan_id=p.id) }}"
+               class="btn btn-sm ms-auto py-0 px-2"
+               style="font-size:.78rem;color:var(--vm-accent);border:1px solid var(--vm-border)">
+                <i class="bi bi-wrench me-1"></i>Registar
+            </a>
         </div>
         {% endfor %}
     </div>
 </div>
 {% endif %}
 
-<h2 class="h6 fw-600 text-muted text-uppercase mb-3" style="letter-spacing:.05em">Os meus Veículos</h2>
+<!-- Conteúdo principal -->
+<div class="row g-4">
 
-{% if vehicles %}
-<div class="row g-3">
-    {% for v in vehicles %}
-    {% set st = v.status_summary %}
-    <div class="col-12 col-md-6 col-lg-4">
-        <div class="card h-100 p-3" style="transition:.18s; min-height: 200px;">
-            <div class="d-flex align-items-start justify-content-between mb-2">
-                <div>
-                    <div class="fw-700" style="color: var(--vm-text);">{{ v.marca }} {{ v.modelo }}</div>
-                    <div class="small text-muted">{{ v.matricula or '—' }} {% if v.ano %}· {{ v.ano }}{% endif %}</div>
+    <!-- Coluna esquerda — Veículos -->
+    <div class="col-12 col-lg-8">
+        <div class="section-title">Os meus veículos</div>
+        {% if vehicles %}
+        <div class="row g-3">
+            {% for v in vehicles %}
+            {% set st = v.status_summary %}
+            {% set active_plans = v.plans|selectattr('ativo')|list %}
+            <div class="col-12 col-md-6">
+                <div class="vehicle-card">
+                    <div class="d-flex align-items-start justify-content-between mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width:38px;height:38px;border-radius:9px;background:rgba(94,174,189,.1);border:1px solid rgba(94,174,189,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i class="bi bi-car-front" style="color:var(--vm-accent);font-size:.95rem;"></i>
+                            </div>
+                            <div>
+                                <div class="fw-700" style="font-size:.97rem;color:var(--vm-text);">
+                                    {{ v.marca }} {{ v.modelo }}
+                                </div>
+                                <div class="small text-muted">
+                                    {{ v.matricula or '—' }}{% if v.ano %} · {{ v.ano }}{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% if st == 'Vencida' %}
+                            <span class="badge badge-danger px-2 py-1" style="font-size:.72rem">Vencida</span>
+                        {% elif st == 'Quase a Vencer' %}
+                            <span class="badge badge-warn px-2 py-1" style="font-size:.72rem">Em breve</span>
+                        {% else %}
+                            <span class="badge badge-ok px-2 py-1" style="font-size:.72rem">OK</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex gap-3 small mb-2" style="color:var(--vm-text-muted);">
+                        <span><i class="bi bi-speedometer2 me-1"></i>{{ v.current_km|int }} km</span>
+                        {% if v.combustivel %}
+                        <span><i class="bi bi-fuel-pump me-1"></i>{{ v.combustivel }}</span>
+                        {% endif %}
+                        <span><i class="bi bi-tools me-1"></i>{{ active_plans|length }} plano{{ 's' if active_plans|length != 1 else '' }}</span>
+                    </div>
+
+                    <!-- Barra de progresso -->
+                    {% set ns = namespace(next_plan=none) %}
+                    {% for p in active_plans %}
+                        {% if p.next_km and p.ultimo_km and (ns.next_plan is none or p.next_km < ns.next_plan.next_km) %}
+                            {% set ns.next_plan = p %}
+                        {% endif %}
+                    {% endfor %}
+                    {% if ns.next_plan %}
+                    {% set total_range = ns.next_plan.next_km - ns.next_plan.ultimo_km %}
+                    {% set done = v.current_km|int - ns.next_plan.ultimo_km %}
+                    {% set pct = [(done / total_range * 100)|int, 100]|min if total_range > 0 else 0 %}
+                    <div class="small mb-1" style="color:var(--vm-text-muted);">
+                        {{ ns.next_plan.nome }}:
+                        <span style="color:var(--vm-text)">{{ v.current_km|int }} / {{ ns.next_plan.next_km }} km</span>
+                    </div>
+                    <div class="progress-km mb-3">
+                        <div class="progress-km-fill"
+                             style="width:{{ pct }}%;background:{% if pct >= 90 %}var(--vm-danger){% elif pct >= 70 %}var(--vm-warn){% else %}var(--vm-ok){% endif %};">
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="mb-3"></div>
+                    {% endif %}
+
+                    <a href="{{ url_for('vehicles.detail', vehicle_id=v.id) }}"
+                       class="btn btn-sm w-100 mt-auto"
+                       style="border:1px solid var(--vm-border);color:var(--vm-text);font-size:.85rem;background:rgba(255,255,255,.03);">
+                        Ver detalhe <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
                 </div>
-                {% if st == 'Vencida' %}
-                    <span class="badge badge-danger px-2">{{ v.plans|selectattr('ativo')|list|length }} alerta{% if v.plans|selectattr('ativo')|list|length != 1 %}s{% endif %}</span>
-                {% elif st == 'Quase a Vencer' %}
-                    <span class="badge badge-warn px-2">Em breve</span>
-                {% else %}
-                    <span class="badge badge-ok px-2">OK</span>
-                {% endif %}
             </div>
-            <div class="small mb-2" style="color: var(--vm-text-muted);">
-                <i class="bi bi-speedometer2 me-1"></i>{{ v.current_km|int }} km
-                {% if v.combustivel %} · {{ v.combustivel }}{% endif %}
+            {% endfor %}
+
+            <div class="col-12 col-md-6">
+                <a href="{{ url_for('vehicles.create') }}"
+                   class="vehicle-card d-flex align-items-center justify-content-center text-decoration-none"
+                   style="border-style:dashed;min-height:180px;">
+                    <div class="text-center">
+                        <i class="bi bi-plus-circle" style="font-size:1.8rem;color:var(--vm-text-muted)"></i>
+                        <div class="small text-muted mt-2">Novo veículo</div>
+                    </div>
+                </a>
             </div>
-            <div class="small mb-3" style="color: var(--vm-text-muted);">
-                {% set active_plans = v.plans|selectattr('ativo')|list %}
-                {{ active_plans|length }} plano{{ 's' if active_plans|length != 1 else '' }} ativo{{ 's' if active_plans|length != 1 else '' }}
-            </div>
-            <a href="{{ url_for('vehicles.detail', vehicle_id=v.id) }}" class="btn btn-sm w-100" style="border:1px solid var(--vm-border);color:var(--vm-text);font-size:.85rem; background: rgba(255,255,255,.03);">
-                Ver detalhe <i class="bi bi-arrow-right ms-1"></i>
+        </div>
+
+        {% else %}
+        <div class="card p-5 text-center">
+            <i class="bi bi-car-front" style="font-size:3rem;color:var(--vm-text-muted)"></i>
+            <h3 class="h5 mt-3 mb-1">Ainda não tens veículos</h3>
+            <p class="text-muted small mb-4">Adiciona o teu primeiro veículo para começar.</p>
+            <a href="{{ url_for('vehicles.create') }}" class="btn btn-primary mx-auto" style="width:fit-content">
+                <i class="bi bi-plus-lg me-1"></i>Adicionar Veículo
             </a>
         </div>
+        {% endif %}
     </div>
-    {% endfor %}
-    <div class="col-12 col-md-6 col-lg-4">
-        <a href="{{ url_for('vehicles.create') }}" class="card h-100 p-3 d-flex align-items-center justify-content-center text-decoration-none" style="border-style:dashed;min-height:130px">
-            <i class="bi bi-plus-circle" style="font-size:1.5rem;color:var(--vm-text-muted)"></i>
-            <span class="small text-muted mt-2">Novo veículo</span>
-        </a>
+
+    <!-- Coluna direita — Timeline -->
+    <div class="col-12 col-lg-4">
+
+        <!-- Próximas manutenções -->
+        <div class="section-title">Próximas manutenções</div>
+        <div class="card p-3 mb-3">
+            {% set all_plans = [] %}
+            {% for v in vehicles %}
+                {% for p in v.plans if p.ativo %}
+                    {% if p.next_date or p.next_km %}
+                        {% set _ = all_plans.append((v, p)) %}
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+
+            {% if all_plans %}
+                {% for v, p in all_plans[:6] %}
+                {% set st = p.status %}
+                <div class="timeline-item">
+                    <div class="timeline-dot"
+                         style="background:{% if st == 'Vencida' %}var(--vm-danger){% elif st == 'Quase a Vencer' %}var(--vm-warn){% else %}var(--vm-ok){% endif %};">
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="small fw-600" style="color:var(--vm-text);">{{ p.nome }}</div>
+                        <div class="small text-muted">{{ v.marca }} {{ v.modelo }}</div>
+                        <div class="d-flex gap-2 mt-1 flex-wrap">
+                            {% if p.next_km %}
+                            <span class="small" style="color:var(--vm-text-muted);">
+                                <i class="bi bi-speedometer2 me-1"></i>{{ p.next_km }} km
+                            </span>
+                            {% endif %}
+                            {% if p.next_date %}
+                            <span class="small" style="color:var(--vm-text-muted);">
+                                <i class="bi bi-calendar3 me-1"></i>{{ p.next_date.strftime('%d/%m/%Y') }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        {% if st == 'Vencida' %}
+                            <span class="badge badge-danger" style="font-size:.68rem">Vencida</span>
+                        {% elif st == 'Quase a Vencer' %}
+                            <span class="badge badge-warn" style="font-size:.68rem">Em breve</span>
+                        {% else %}
+                            <span class="badge badge-ok" style="font-size:.68rem">OK</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-3">
+                    <i class="bi bi-calendar-check" style="font-size:1.8rem;color:var(--vm-text-muted)"></i>
+                    <p class="small text-muted mt-2 mb-0">Sem planos ativos.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Atividade recente -->
+        <div class="section-title">Atividade recente</div>
+        <div class="card p-3">
+            {% set all_records = [] %}
+            {% for v in vehicles %}
+                {% for p in v.plans %}
+                    {% for r in p.records %}
+                        {% set _ = all_records.append((v, p, r)) %}
+                    {% endfor %}
+                {% endfor %}
+            {% endfor %}
+
+            {% if all_records %}
+                {% set sorted_records = all_records|sort(attribute='2.data', reverse=True) %}
+                {% for v, p, r in sorted_records[:5] %}
+                <div class="timeline-item">
+                    <div class="timeline-dot" style="background:var(--vm-accent);"></div>
+                    <div class="flex-grow-1">
+                        <div class="small fw-600" style="color:var(--vm-text);">{{ p.nome }}</div>
+                        <div class="small text-muted">{{ v.marca }} {{ v.modelo }}</div>
+                        <div class="d-flex gap-2 mt-1 flex-wrap">
+                            <span class="small text-muted">
+                                <i class="bi bi-calendar3 me-1"></i>{{ r.data.strftime('%d/%m/%Y') }}
+                            </span>
+                            <span class="small text-muted">
+                                <i class="bi bi-speedometer2 me-1"></i>{{ r.km }} km
+                            </span>
+                            {% if r.custo %}
+                            <span class="small" style="color:var(--vm-ok);">
+                                <i class="bi bi-currency-euro me-1"></i>{{ r.custo }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-3">
+                    <i class="bi bi-clock-history" style="font-size:1.8rem;color:var(--vm-text-muted)"></i>
+                    <p class="small text-muted mt-2 mb-0">Sem manutenções registadas.</p>
+                </div>
+            {% endif %}
+        </div>
+
     </div>
 </div>
-{% else %}
-<div class="card p-5 text-center">
-    <i class="bi bi-car-front" style="font-size:2.5rem;color:var(--vm-text-muted)"></i>
-    <h3 class="h6 mt-3 mb-1">Ainda não tens veículos</h3>
-    <p class="text-muted small mb-3">Adiciona o teu primeiro veículo para começar a gerir a manutenção.</p>
-    <a href="{{ url_for('vehicles.create') }}" class="btn btn-primary mx-auto" style="width:fit-content">
-        <i class="bi bi-plus-lg me-1"></i>Adicionar Veículo
-    </a>
-</div>
-{% endif %}
 {% endblock %}
+    <div class="col-12 col-lg-4">
+        

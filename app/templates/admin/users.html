@@ -1,45 +1,147 @@
 {% extends "base.html" %}
-{% block title %}Admin · Utilizadores{% endblock %}
+{% block title %}Administração · VehicleMaint{% endblock %}
 {% block content %}
+
 <div class="d-flex align-items-center justify-content-between mb-4">
-    <h1 class="h4 fw-bold mb-0">Gestão de Utilizadores</h1>
-    <span class="badge" style="background:var(--vm-surface-2);color:var(--vm-text-muted);border:1px solid var(--vm-border)">{{ all_users|length }} utilizadores</span>
+    <div>
+        <h1 class="h4 fw-bold mb-0">Administração</h1>
+        <p class="small text-muted mb-0">Gestão de utilizadores do sistema</p>
+    </div>
+    <div class="d-flex gap-2">
+        <span class="badge badge-ok px-3 py-2">
+            <i class="bi bi-people me-1"></i>{{ users|length }} utilizador{{ 's' if users|length != 1 else '' }}
+        </span>
+    </div>
 </div>
+
+<!-- Estatísticas rápidas -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card p-3 text-center">
+            <div class="fw-700" style="font-size:1.8rem;color:var(--vm-accent)">{{ users|length }}</div>
+            <div class="small text-muted">Total utilizadores</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card p-3 text-center">
+            <div class="fw-700" style="font-size:1.8rem;color:var(--vm-ok)">
+                {{ users|selectattr('ativo')|list|length }}
+            </div>
+            <div class="small text-muted">Ativos</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card p-3 text-center">
+            <div class="fw-700" style="font-size:1.8rem;color:var(--vm-warn)">
+                {{ users|selectattr('role', 'equalto', 'admin')|list|length }}
+            </div>
+            <div class="small text-muted">Admins</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card p-3 text-center">
+            <div class="fw-700" style="font-size:1.8rem;color:var(--vm-danger)">
+                {{ users|rejectattr('ativo')|list|length }}
+            </div>
+            <div class="small text-muted">Inativos</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabela de utilizadores -->
 <div class="card">
+    <div class="card-header px-3 py-2 d-flex align-items-center justify-content-between">
+        <span class="small fw-600 text-muted text-uppercase" style="letter-spacing:.05em;">
+            <i class="bi bi-people me-1"></i>Utilizadores
+        </span>
+        <input type="text" id="searchInput" class="form-control form-control-sm"
+               placeholder="Pesquisar..." style="max-width:200px;">
+    </div>
     <div class="table-responsive">
-        <table class="table mb-0">
-            <thead style="background:var(--vm-surface-2)">
-                <tr>
-                    <th class="px-3 py-2 small text-muted fw-600">NOME</th>
-                    <th class="py-2 small text-muted fw-600">EMAIL</th>
-                    <th class="py-2 small text-muted fw-600">ROLE</th>
-                    <th class="py-2 small text-muted fw-600">DESDE</th>
-                    <th class="py-2 small text-muted fw-600">ESTADO</th>
-                    <th class="py-2 small text-muted fw-600"></th>
+        <table class="table table-hover mb-0" id="usersTable">
+            <thead>
+                <tr style="border-bottom:1px solid var(--vm-border)">
+                    <th class="px-3 py-2 small text-muted fw-600">#</th>
+                    <th class="px-3 py-2 small text-muted fw-600">Nome</th>
+                    <th class="px-3 py-2 small text-muted fw-600">Email</th>
+                    <th class="px-3 py-2 small text-muted fw-600">Role</th>
+                    <th class="px-3 py-2 small text-muted fw-600">Estado</th>
+                    <th class="px-3 py-2 small text-muted fw-600">Veículos</th>
+                    <th class="px-3 py-2 small text-muted fw-600">Registado</th>
+                    <th class="px-3 py-2 small text-muted fw-600">Ações</th>
                 </tr>
             </thead>
             <tbody>
-                {% for u in all_users %}
-                <tr>
-                    <td class="px-3 py-2 fw-500">{{ u.nome }}</td>
-                    <td class="py-2 small text-muted">{{ u.email }}</td>
-                    <td class="py-2">
-                        {% if u.role == 'admin' %}<span class="badge" style="background:rgba(79,152,163,.15);color:var(--vm-accent);border:1px solid rgba(79,152,163,.3)">admin</span>
-                        {% else %}<span class="badge" style="background:var(--vm-surface-2);color:var(--vm-text-muted);border:1px solid var(--vm-border)">user</span>{% endif %}
+                {% for u in users %}
+                <tr style="border-bottom:1px solid var(--vm-border)">
+                    <td class="px-3 py-2 small text-muted">{{ u.id }}</td>
+                    <td class="px-3 py-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="rounded-circle d-inline-flex align-items-center justify-content-center fw-bold"
+                                  style="width:28px;height:28px;background:var(--vm-accent);color:#fff;font-size:.75rem;flex-shrink:0;">
+                                {{ u.nome[0].upper() }}
+                            </span>
+                            <span class="small fw-600">{{ u.nome }}</span>
+                        </div>
                     </td>
-                    <td class="py-2 small text-muted">{{ u.criado_em.strftime('%d/%m/%Y') if u.criado_em else '—' }}</td>
-                    <td class="py-2">
-                        {% if u.ativo %}<span class="badge badge-ok">Ativo</span>
-                        {% else %}<span class="badge badge-danger">Inativo</span>{% endif %}
-                    </td>
-                    <td class="py-2">
-                        {% if u.id != user.id %}
-                        <form method="POST" action="{{ url_for('admin.toggle_user', uid=u.id) }}">
-                            <button class="btn btn-sm py-0 px-2" style="border:1px solid var(--vm-border);color:{% if u.ativo %}var(--vm-danger){% else %}var(--vm-ok){% endif %};font-size:.78rem">
-                                {% if u.ativo %}Desativar{% else %}Ativar{% endif %}
-                            </button>
-                        </form>
+                    <td class="px-3 py-2 small text-muted">{{ u.email }}</td>
+                    <td class="px-3 py-2">
+                        {% if u.role == 'admin' %}
+                            <span class="badge badge-warn px-2 py-1">Admin</span>
+                        {% else %}
+                            <span class="badge px-2 py-1"
+                                  style="background:rgba(255,255,255,.05);color:var(--vm-text-muted);border:1px solid var(--vm-border);">
+                                User
+                            </span>
                         {% endif %}
+                    </td>
+                    <td class="px-3 py-2">
+                        {% if u.ativo %}
+                            <span class="badge badge-ok px-2 py-1">Ativo</span>
+                        {% else %}
+                            <span class="badge badge-danger px-2 py-1">Inativo</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-3 py-2 small text-muted">
+                        <i class="bi bi-car-front me-1"></i>{{ u.vehicles|list|length }}
+                    </td>
+                    <td class="px-3 py-2 small text-muted">
+                        {{ u.criado_em.strftime('%d/%m/%Y') if u.criado_em else '—' }}
+                    </td>
+                    <td class="px-3 py-2">
+                        <div class="d-flex gap-1">
+                            <!-- Ativar/Desativar -->
+                            <form method="POST"
+                                  action="{{ url_for('admin.toggle_user', user_id=u.id) }}">
+                                <button class="btn btn-sm px-2 py-0"
+                                        style="border:1px solid var(--vm-border);font-size:.75rem;
+                                               color:{{ 'var(--vm-danger)' if u.ativo else 'var(--vm-ok)' }};"
+                                        title="{{ 'Desativar' if u.ativo else 'Ativar' }}">
+                                    <i class="bi bi-{{ 'slash-circle' if u.ativo else 'check-circle' }}"></i>
+                                </button>
+                            </form>
+                            <!-- Promover/Rebaixar role -->
+                            <form method="POST"
+                                  action="{{ url_for('admin.toggle_role', user_id=u.id) }}">
+                                <button class="btn btn-sm px-2 py-0"
+                                        style="border:1px solid var(--vm-border);font-size:.75rem;color:var(--vm-warn);"
+                                        title="{{ 'Remover Admin' if u.role == 'admin' else 'Tornar Admin' }}">
+                                    <i class="bi bi-{{ 'shield-minus' if u.role == 'admin' else 'shield-plus' }}"></i>
+                                </button>
+                            </form>
+                            <!-- Apagar -->
+                            {% if u.id != user.id %}
+                            <form method="POST"
+                                  action="{{ url_for('admin.delete_user', user_id=u.id) }}"
+                                  onsubmit="return confirm('Tens a certeza que queres apagar este utilizador?')">
+                                <button class="btn btn-sm px-2 py-0"
+                                        style="border:1px solid var(--vm-border);font-size:.75rem;color:var(--vm-danger);"
+                                        title="Apagar utilizador">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -47,4 +149,16 @@
         </table>
     </div>
 </div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+    // Pesquisa em tempo real
+    document.getElementById('searchInput').addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        document.querySelectorAll('#usersTable tbody tr').forEach(row => {
+            row.style.display = row.textContent.toLowerCase().includes(query) ? '' : 'none';
+        });
+    });
+</script>
 {% endblock %}

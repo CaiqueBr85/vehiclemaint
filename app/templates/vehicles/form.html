@@ -1,48 +1,95 @@
 {% extends "base.html" %}
-{% block title %}{% if vehicle %}Editar{% else %}Novo{% endif %} Veículo · VehicleMaint{% endblock %}
+{% block title %}{{ 'Editar' if vehicle else 'Novo' }} Veículo · VehicleMaint{% endblock %}
 {% block content %}
+
+<div class="d-flex align-items-center gap-2 mb-4">
+    <a href="{{ url_for('vehicles.index') }}" class="btn btn-sm"
+       style="border:1px solid var(--vm-border);color:var(--vm-text)">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+        <h1 class="h4 fw-bold mb-0">{{ 'Editar Veículo' if vehicle else 'Novo Veículo' }}</h1>
+        <p class="small text-muted mb-0">
+            {{ 'Atualiza os dados do veículo' if vehicle else 'Preenche os dados do novo veículo' }}
+        </p>
+    </div>
+</div>
+
 <div class="row justify-content-center">
-    <div class="col-12 col-md-7 col-lg-5">
-        <div class="d-flex align-items-center gap-2 mb-4">
-            <a href="{{ url_for('vehicles.index') }}" class="btn btn-sm" style="border:1px solid var(--vm-border);color:var(--vm-text)"><i class="bi bi-arrow-left"></i></a>
-            <h1 class="h5 fw-bold mb-0">{% if vehicle %}Editar Veículo{% else %}Novo Veículo{% endif %}</h1>
-        </div>
+    <div class="col-12 col-md-8 col-lg-6">
         <div class="card p-4">
             <form method="POST">
-                <div class="row g-3">
+
+                <div class="mb-3">
+                    abel class="form-label small fw-600">Marca <span style="color:var(--vm-danger)">*</span></label>
+                    <input type="text" name="marca" class="form-control"
+                           placeholder="Ex: Honda, Toyota, BMW..."
+                           value="{{ vehicle.marca if vehicle else '' }}" required>
+                </div>
+
+                <div class="mb-3">
+                    abel class="form-label small fw-600">Modelo <span style="color:var(--vm-danger)">*</span></label>
+                    <input type="text" name="modelo" class="form-control"
+                           placeholder="Ex: Civic, Corolla, R1200GS..."
+                           value="{{ vehicle.modelo if vehicle else '' }}" required>
+                </div>
+
+                <div class="row g-3 mb-3">
                     <div class="col-6">
-                        <label class="form-label small text-muted">MARCA</label>
-                        <input type="text" name="marca" class="form-control" placeholder="Honda" value="{{ vehicle.marca if vehicle else '' }}" required>
+                        abel class="form-label small fw-600">Matrícula</label>
+                        <input type="text" name="matricula" class="form-control"
+                               placeholder="Ex: AA-00-AA"
+                               value="{{ vehicle.matricula or '' if vehicle else '' }}">
                     </div>
                     <div class="col-6">
-                        <label class="form-label small text-muted">MODELO</label>
-                        <input type="text" name="modelo" class="form-control" placeholder="CB500F" value="{{ vehicle.modelo if vehicle else '' }}" required>
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label small text-muted">ANO</label>
-                        <input type="number" name="ano" class="form-control" placeholder="2021" value="{{ vehicle.ano if vehicle else '' }}" min="1900" max="2099">
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label small text-muted">MATRÍCULA</label>
-                        <input type="text" name="matricula" class="form-control" placeholder="AA-00-BB" value="{{ vehicle.matricula if vehicle else '' }}">
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label small text-muted">COMBUSTÍVEL</label>
-                        <select name="combustivel" class="form-select">
-                            <option value="">— Selecionar —</option>
-                            {% for opt in ['Gasolina', 'Gasóleo', 'Elétrico', 'Híbrido', 'GPL'] %}
-                            <option value="{{ opt }}" {% if vehicle and vehicle.combustivel == opt %}selected{% endif %}>{{ opt }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-12 mt-2">
-                        <button type="submit" class="btn btn-primary w-100">
-                            {% if vehicle %}Guardar alterações{% else %}Adicionar veículo{% endif %}
-                        </button>
+                        abel class="form-label small fw-600">Ano</label>
+                        <input type="number" name="ano" class="form-control"
+                               placeholder="Ex: 2020"
+                               min="1900" max="2100"
+                               value="{{ vehicle.ano or '' if vehicle else '' }}">
                     </div>
                 </div>
+
+                <div class="mb-3">
+                    abel class="form-label small fw-600">Combustível</label>
+                    <select name="combustivel" class="form-select">
+                        <option value="">— Seleciona —</option>
+                        {% set combustiveis = ['Gasolina', 'Gasóleo', 'Elétrico', 'Híbrido', 'GPL', 'Outro'] %}
+                        {% for c in combustiveis %}
+                        <option value="{{ c }}"
+                            {{ 'selected' if vehicle and vehicle.combustivel == c else '' }}>
+                            {{ c }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {% if not vehicle %}
+                <div class="mb-4">
+                    abel class="form-label small fw-600">Km Inicial</label>
+                    <input type="number" name="km_inicial" class="form-control"
+                           placeholder="Ex: 45000" min="0" value="0">
+                    <div class="form-text" style="color:var(--vm-text-muted)">
+                        Quilómetros atuais do veículo ao adicionar.
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="d-flex gap-2 mt-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1">
+                        <i class="bi bi-check-lg me-1"></i>
+                        {{ 'Guardar alterações' if vehicle else 'Adicionar veículo' }}
+                    </button>
+                    <a href="{{ url_for('vehicles.index') }}"
+                       class="btn btn-sm px-3"
+                       style="border:1px solid var(--vm-border);color:var(--vm-text-muted);">
+                        Cancelar
+                    </a>
+                </div>
+
             </form>
         </div>
     </div>
 </div>
+
 {% endblock %}
