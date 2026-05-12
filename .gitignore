@@ -5,3 +5,4 @@ __pycache__/
 *.pyc
 migrations/versions/
 .DS_Store
+ngrok.exe
